@@ -1,54 +1,26 @@
-第一步: 数据上传并进行解析
+# RNA-seq downstream analysis 
 
-第二步:
+This is a shiny app for RNA-seq downstream analysis for _Arabidopsis thaliana_.
 
+It can do the following analysis:
 
+- Differetial gene analysis using DESeq2
+- GO and KEGG enrichment analysis using clusterProfiler
+- GSEA analysis using clusterProfiler
 
-挑选出背景和对照组，设定阈值
+The only data you need provided is expression matrix. 
 
+I use `read.table("data.txt",sep="\t",header = TRUE)` to parse the data.
 
+|Geneid | treat1 | tread2 | untreat1 | untreat2 |
+| --- | --- | ----| --- | --- |
+|AT1G01010|	163|	168|	233	|219|
+|AT1G01020|	289|	304|	390|	451|
+|AT1G01030|	32|	27|	37	|25|
+|AT1G01040|	1430|	1350|	1706	|1593|
+|AT1G01046|	14|	13|	18|	19|
+|AT1G01050|	1646|	1637|	1904|	1823|
+|AT1G01060|	132	|143|	152|	103|
+|AT1G01070|	28	|30	|31|	16|
+|AT1G01073|	0|	0|0	|0|
 
-
-
-## 变量命名
-
-InputId
-
-上传
-
-- upload_vcf : 上传VCF
-- EMS: 用于选择是否为EMS诱变群体，（目前仅仅是做EMS过滤，未来可能会单独写个脚本做滑窗的index计算）
-- submit: 确定上传文件，进行处理
-
-候选基因筛选
-
-- input_bg: 选择背景样本
-- input_fg: 选择突变呀根本
-- input_delta: 筛选的差值index计算
-- submit2: 开始进行候选位点筛选
-
-画图部分
-
-- input_chr
-
-
-
-输出部分
-
-- ratioplot
-- download_ratioplot
-- deltaplot
-- download_deltaplot
-- dataset1
-- download_dataset1
-- dataset2
-- download_dataset2
-
-
-
-全部变量(global_value)
-
-- output_vcf
-- chr_selection
-- samples
-- candidate_sites
