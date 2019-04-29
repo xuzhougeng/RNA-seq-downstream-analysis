@@ -24,3 +24,17 @@ I use `read.table("data.txt",sep="\t",header = TRUE)` to parse the data.
 |AT1G01070|	28	|30	|31|	16|
 |AT1G01073|	0|	0|0	|0|
 
+Requirement:
+
+- R > 3.5.0
+- R packages:
+  - shiny 
+  - DESeq2
+  - stringr
+  - tidyr
+  - ggplot2
+  - plotly
+  - shinythemes
+  - clusterProfiler
+  - org.At.tair.db
+

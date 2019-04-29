@@ -441,8 +441,9 @@ server <- function(input, output, session){
     
   })
   
-  # GSEA analysis
-  observeEvent(input$submit6,{
+
+# GSEA analysis ---------------------------------------------------------
+observeEvent(input$submit6,{
     
     global_value$ont2      = input$input_ont2
     global_value$rank_type = input$input_rank

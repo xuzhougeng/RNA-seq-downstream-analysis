@@ -2,7 +2,7 @@
 # Build DESeqDataSeq object from matrix with given contrl and case group
 # and remove rows in which there are very few reads
 
-BuildDdsFromMatrix <- function(matrix, 
+BuildDdsFromMatrix <- function(mt, 
                                control, case,
                                min_count = 10){
   
@@ -12,6 +12,8 @@ BuildDdsFromMatrix <- function(matrix,
   condition <- factor(condition, levels = c("control", "case"))
   coldata <- data.frame(condition = condition)
   rownames(coldata) <- c(control, case)
+  matrix <- mt[,c(control, case)]
+  
   
   dds <- DESeq2::DESeqDataSetFromMatrix(matrix, 
                                         coldata, 
