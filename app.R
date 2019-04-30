@@ -446,7 +446,18 @@ server <- function(input, output, session){
       
     )
   })
-  
+
+# Download Filter results -------------------------------------------------
+  output$download_dataset1 <- downloadHandler(
+    
+    filename = "DEG.csv",
+    content  = function(file){
+      write.csv(global_value$output_res, file, row.names = FALSE)
+    }
+    
+  )
+
+    
 
 # DT: filter the results with LFC and pvalue ------------------------------
   output$dataset1 <- DT::renderDT({
@@ -485,7 +496,9 @@ server <- function(input, output, session){
     p
     
   })
-  
+
+
+# Gene Expression Dot Plot ------------------------------------------------
   output$genedotplot <- renderPlot({
     
     validate(
@@ -548,7 +561,9 @@ observeEvent(input$submit6,{
     )
     as.data.frame(global_value$gseaout)
     
-  })
+  }, selection = 'single'
+  
+  )
   
   output$gseaplot <- renderPlot({
     
