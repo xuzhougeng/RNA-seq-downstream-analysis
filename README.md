@@ -38,3 +38,8 @@ Requirement:
   - clusterProfiler
   - org.At.tair.db
 
+## 功能升级
+
+- 修改界面, 以shinydashboard 作为主体
+- 增加文件下载功能
+- 增加更多的注释信息

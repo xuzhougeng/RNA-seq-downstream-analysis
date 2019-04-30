@@ -1,4 +1,7 @@
+# package, data and local script loading -------------------------------------------
+
 library(shiny)
+library(shinydashboard)
 library(DESeq2)
 library(stringr)
 library(tidyr)
@@ -7,15 +10,14 @@ library(plotly)
 library(shinythemes)
 library(clusterProfiler)
 
-# Options
 options(stringsAsFactors = FALSE)
 
 symbol <- read.table("data/ath_gene_alias.txt",
                      sep="\t",
                      header = TRUE)
-
 colnames(symbol) <- c("geneID", "SYMBOL")
 
+# header ------------------------------------------------------------------
 
 header <- fluidPage(
   style = "padding: 0px",
@@ -37,216 +39,265 @@ header <- fluidPage(
   
 )
 
-# Sidebar Panel
-sidebarpanels <- sidebarPanel(
-  
-  # Loading RNA-seq
-  
-  fluidRow(
-    tags$p("UpLoad your expression matrix"),
-    
-    fileInput("upload_mat", 
-              label = "Upload expression matrix file",
-              accept = c("text/plain",
-                         ".txt")),
-    actionButton("submit", label = "Submit")
-    
-  ),
-  tags$hr(),
-  
-  # Add Group information
-  fluidRow(
-    
-    selectizeInput("input_control",
-                   label = "Select the control group",
-                   choices = NULL,
-                   multiple = TRUE,
-                   options = list(
-                     placeholder = "Select the control group",
-                     maxOptions = 20
-                   )),
-    
-    selectizeInput("input_case",
-                   label = "Select the case group",
-                   choices = NULL,
-                   multiple = TRUE,
-                   options = list(
-                     placeholder = "Select the case group",
-                     maxOptions = 20
-                   )),
-    
-    actionButton("submit2", label = "Run")
-    
-  ),
-  
-  tags$hr(),
-  
-  # DESeq2
-  fluidRow(
-  # Set Parameters for results
-  column(width = 6,
-    
-    sliderInput("input_LFC",
-                label = "log2 fold change threshold",
-                min = -4,
-                max =  4,
-                value = 0,
-                step = 0.1
-                ),
-    
-    selectInput("input_methods",
-                   label = "Select p value adjust methods",
-                   choices = p.adjust.methods,
-                   selected = "fdr"),
-    
-    actionButton("submit3", label = "Run")
-    
-  ),
-  # Set Parameters for filter
-  column(width = 6,
-         
-         sliderInput("input_LFC2",
-                     label = "Filter by logFoldChange",
-                     min = 0,
-                     max = 4,
-                     value = 1,
-                     step = 0.5
-         ),
-         numericInput("input_pvalue",
-                     label = "Filter by  p value",
-                     min = 0,
-                     max =  1,
-                     value = 0.05,
-                     step = 0.01
-         ),
-         
-         actionButton("submit4", label = "Run")
-         
+
+# dashboard sidebar -------------------------------------------------------
+
+dashboardsider <- dashboardSidebar(
+  sidebarMenu(
+    menuItem("Data Upload", tabName = "DataUpload", icon = icon("file-upload")),
+    menuItem("Diagnosis", tabName = "Diagnosis", icon = icon("stethoscope")),
+    menuItem("DEG Analysis", tabName = "DEG", icon = icon("not-equal")),
+    menuItem("DEG Exploration", tabName = "Exp", icon = icon("search")),
+    menuItem("Enrichment Analysis", tabName = "Enrichment", icon = icon("list")),
+    menuItem("GSEA", tabName = "GSEA", icon = icon("sort-amount-down"))
   )
-  ),
-  tags$hr(),
-  # GO and GSEA
-  fluidRow(
-    column(width = 6,
-           tags$p("GO and KEGG enrichment analysis"),
-           selectInput("input_ont",
-                       label = "Ontology",
-                       choices = c("BP","MF","CC","KEGG"),
-                       selected = "BP"
-           ),
-           selectInput("input_gene",
-                       label = "enriched gene",
-                       choices = c("up","down","all"),
-                       selected = "all"
-           ),
-           
-           actionButton("submit5", label = "Run")
-           
-    ),
-    # Set Parameters for GSEA
-    column(width = 6,
-           tags$p("GO and KEGG GSEA analysis"),
-           selectInput("input_ont2",
-                label = "Ontology",
-                choices = c("BP","CC","MF","KEGG"),
-                selected = "fdr"),
-           selectInput("input_rank",
-                       label = "rank type",
-                       choices = c("padj","log2FoldChange"),
-                       selected = "log2FoldChange"),
-           actionButton("submit6", label = "Run")
-           )
-   )
   
 )
 
-# Main Panel
-mainpanels  <- mainPanel(
 
-  tabsetPanel(
-    
-    tabPanel("PCA Plot", 
-             fluidPage(
-               fluidRow(plotOutput("pcaplot"))
-               #fluidRow(
-               #  tags$p("For batch plotting, only the first gene will be displayed above. Please download the file for all plots. "),
-               #  downloadLink("download_ratioplot","SNP Ratio plot download"))
+# Body content ------------------------------------------------------------
+
+dashboardbody <- dashboardBody(
+  
+  tabItems(
+
+# tabItem: data load ------------------------------------------------------
+    tabItem(tabName = "DataUpload",
+            
+            # Loading RNA-seq
+            fluidRow(
+              shinydashboard::box(
+              title = "UpLoad expression matrix", status = "primary",
+              solidHeader = TRUE,
+              
+              fileInput("upload_mat", 
+                        label = "Upload expression matrix file",
+                        accept = c("text/plain",
+                                   ".txt")),
+              actionButton("submit", label = "Submit")
+              
+            ),
+            
+            # Add Group information
+            # box2 start
+            shinydashboard::box(
+              
+              title = "Select control and case", status = "warning",
+              solidHeader = TRUE,
+              
+              selectizeInput("input_control",
+                             label = "Select the control group",
+                             choices = NULL,
+                             multiple = TRUE,
+                             options = list(
+                               placeholder = "Select the control group",
+                               maxOptions = 20
+                             )),
+              
+              selectizeInput("input_case",
+                             label = "Select the case group",
+                             choices = NULL,
+                             multiple = TRUE,
+                             options = list(
+                               placeholder = "Select the case group",
+                               maxOptions = 20
+                             )),
+              
+              actionButton("submit2", label = "Run")
+            ) # box2 end
+    ), # box1 end
+    fluidRow(
+      shinydashboard::box(
+               DT::dataTableOutput("dataset2"),
+               title = "All raw read count",
+               width = 12
+      )
+      
+    )
+),
+# tabItem: Diagnosis ------------------------------------------------------
+    tabItem( tabName = "Diagnosis",
+
+             shinydashboard::box(
+                        fluidRow(plotOutput("pcaplot")),
+                        #fluidRow(
+                        #  tags$p("For batch plotting, only the first gene will be displayed above. Please download the file for all plots. "),
+                        #  downloadLink("download_ratioplot","SNP Ratio plot download"))
+                      
+                      title = "PCA Plot", 
+                      width = 12
+                      
              )
-             
     ),
-    
-    tabPanel("Volcano Plot", 
-             fluidPage(
-               fluidRow( plotOutput("volcano" )),
-               fluidRow(
-                 tags$p("For batch plotting, only the first gene will be displayed above. Please download the file for all plots. "),
-                 downloadLink("download_volcano","Volcano plot download"))
+
+# tabItem: DEG Analysis ---------------------------------------------------
+    tabItem( tabName = "DEG",
+             
+             fluidRow(
+               shinydashboard::box(
+                      
+                      sliderInput("input_LFC",
+                                  label = "log2 fold change threshold",
+                                  min = -4,
+                                  max =  4,
+                                  value = 0,
+                                  step = 0.1
+                      ),
+                      
+                      selectInput("input_methods",
+                                  label = "Select p value adjust methods",
+                                  choices = p.adjust.methods,
+                                  selected = "fdr"),
+                      
+                      actionButton("submit3", label = "Run"),
+                      footer = "DO NOT CHANGE, JUST RUN"
+                      
+               ),   
+               
+               
+             # filter DEG
+             shinydashboard::box(
+               
+               sliderInput("input_LFC2",
+                           label = "Filter by logFoldChange",
+                           min = 0,
+                           max = 4,
+                           value = 1,
+                           step = 0.5
+               ),
+               numericInput("input_pvalue",
+                            label = "Filter by  p adj value",
+                            min = 0,
+                            max =  1,
+                            value = 0.05,
+                            step = 0.01
+               ),
+               
+               actionButton("submit4", label = "Run")
+               
              )
+            )
+  ),
+# tabItems: DEG exploration -----------------------------------------------
+
+  tabItem( tabName = "Exp",
+           fluidRow(
+             # selection
+             shinydashboard::box(
+               DT::dataTableOutput("dataset1"),
+               br(),
+               downloadLink("download_dataset1","Download csv"),
+               title = "Differential expression genes",
+               width = 12
+               
+             )),
              
-    ),
-    
-    #tabPanel("Heapmap", 
-     #        fluidPage(
-     #          fluidRow( plotlyOutput("heapmap" )),
-     #          fluidRow(
-     #            tags$p("For batch plotting, only the first gene will be displayed above. Please download the file for all plots. "),
-     #            downloadLink("download_heatmap","Heatmap download"))
-      #       )
-             
-    #),
-    
-    tabPanel(title = "Differential expression genes",
-             DT::dataTableOutput("dataset1"),
-             br(),
-             downloadLink("download_dataset1","Download csv"),
+           fluidRow(
+             # volcano plot
+             shinydashboard::box(
+                          plotOutput("volcano" ),
+                          downloadLink("download_volcano","Volcano plot download"),
+                          title = "Volcano Plot" 
+                        
+                        
+               ),
+             # dot plot of selected gene
+             shinydashboard::box(
+               
+             )
+               
+             ),
              br(),
              tags$p("If you use DESeq2 in published research, please cite:"),
              tags$p("Love, M.I., Huber, W., Anders, S. (2014) Moderated estimation of fold change and dispersion for RNA-seq data with DESeq2. Genome Biology, 15:550")
-    ), 
-    
-    tabPanel(title = "GO and KEGG enrichment analysis",
-             fluidRow( plotOutput("dotplot" )),
-             downloadLink("download_go_kegg","Download csv"),
-             br(),
-             tags$p("clusterProfiler v3.10.1  For help: https://guangchuangyu.github.io/software/clusterProfiler"),
-             tags$p("If you use clusterProfiler in published research, please cite:"),
-             tags$p("Guangchuang Yu, Li-Gen Wang, Yanyan Han, Qing-Yu He. clusterProfiler: an R package for comparing biological themes among gene clusters. OMICS: A Journal of Integrative Biology. 2012, 16(5):284-287.")
-
-    ), 
-    
-    tabPanel(title = "GSEA enriched terms",
-             DT::dataTableOutput("gsea"),
-             br(),
-             downloadLink("download_gsea","Download csv")
+             
     ),
-    
-    tabPanel(title = "GSEA plot",
-             fluidRow( plotOutput("gseaplot" ))
-    ), 
-    
-    tabPanel(title = "All raw read count",
-             DT::dataTableOutput("dataset2")
+
+# tabItem: Enrichment Analysis --------------------------------------------
+    tabItem( tabName = "Enrichment",
+             # GO / KEGG enrichment analysis
+             fluidRow(
+               shinydashboard::box(width = 4,
+                      tags$p("GO and KEGG enrichment analysis"),
+                      selectInput("input_ont",
+                                  label = "Ontology",
+                                  choices = c("BP","MF","CC","KEGG"),
+                                  selected = "BP"
+                      ),
+                      selectInput("input_gene",
+                                  label = "enriched gene",
+                                  choices = c("up","down","all"),
+                                  selected = "all"
+                      ),
+                      
+                      actionButton("submit5", label = "Run")
+                      
+               )),
+             fluidRow(
+               shinydashboard::box(width = 12,
+               title = "GO and KEGG enrichment analysis",
+                      fluidRow( plotOutput("dotplot" )),
+                      downloadLink("download_go_kegg","Download csv"),
+                      br(),
+                      tags$p("clusterProfiler v3.10.1  For help: https://guangchuangyu.github.io/software/clusterProfiler"),
+                      tags$p("If you use clusterProfiler in published research, please cite:"),
+                      tags$p("Guangchuang Yu, Li-Gen Wang, Yanyan Han, Qing-Yu He. clusterProfiler: an R package for comparing biological themes among gene clusters. OMICS: A Journal of Integrative Biology. 2012, 16(5):284-287.")
+                      
+             ))
+    ),
+
+# tabItem: GSEA -----------------------------------------------------------
+    tabItem( tabName = "GSEA",
+             fluidRow(
+             shinydashboard::box(
+                    tags$p("GO and KEGG GSEA analysis"),
+                    selectInput("input_ont2",
+                                label = "Ontology",
+                                choices = c("BP","CC","MF","KEGG"),
+                                selected = "fdr"),
+                    selectInput("input_rank",
+                                label = "rank type",
+                                choices = c("padj","log2FoldChange"),
+                                selected = "log2FoldChange"),
+                    actionButton("submit6", label = "Run"),
+                    width = 4
+             ),
+             
+             shinydashboard::box(
+               plotOutput("gseaplot" ),
+               title = "GSEA plot",width = 8
              )
-  )
-  
-)
+             ),
+             fluidRow(
+               shinydashboard::box(
+                 DT::dataTableOutput("gsea"),
+                 br(),
+                 downloadLink("download_gsea","Download csv"),
+                 title = "GSEA enriched terms",
+                 width = 12
+               )
 
-
-ui <- fluidPage(
-  
-  style = "padding:0px",
-  header,
-  tags$title("Arabidopsis RNA-seq Analysis Platform"),
-  fluidPage(
-    style = "margin-left: 100px; margin-right: 100px",
-    sidebarLayout(
-      sidebarPanel = sidebarpanels,
-      mainPanel    = mainpanels
+             )
+      
     )
-  )
+ )
+  
 )
 
-#print("Will it running? Server")
+
+# UI ----------------------------------------------------------------------
+
+ui <- dashboardPage(
+  title = "Arabidopsis RNA-seq Analysis Platform",
+  header  = dashboardHeader(title = "RNA-seq downstream Analysis"),
+  sidebar = dashboardsider,
+  body    = dashboardbody
+  
+)
+
+
+# Server ------------------------------------------------------------------
+
 server <- function(input, output, session){
 
   global_value <- reactiveValues(
@@ -479,5 +530,8 @@ observeEvent(input$submit6,{
    
 }
 
+
+
+# Run ---------------------------------------------------------------------
 
 shinyApp(ui = ui, server = server)
