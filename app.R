@@ -489,7 +489,7 @@ server <- function(input, output, session){
   output$genedotplot <- renderPlot({
     
     validate(
-      need( ! length(input$dataset1_rows_selected), "select a gene")
+      need( length(input$dataset1_rows_selected) == 1, "select a gene")
     )
     
     geneid <- global_value$output_res[input$dataset1_rows_selected, 
