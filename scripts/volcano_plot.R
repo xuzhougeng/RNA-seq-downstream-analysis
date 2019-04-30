@@ -14,11 +14,11 @@
 ##' @export
 ##' @author zhougeng xu, haitao
 volcano_plot <- function(df, 
-                             selectgenes = "", 
-							 circlesize=2.0,
-							 strocksize=1.0,
-                             log2FC1 = 1.5, log2FC2 = 2.5, log2FC3 = 5,
-                             pval1 = 0.05, pval2 = 1e-4, pval3 = 1e-5
+                         selectgenes = "", 
+							           circlesize=2.0,
+  							         strocksize=1.0,
+                         log2FC1 = 1.5, log2FC2 = 2.5, log2FC3 = 5,
+                         pval1 = 0.05, pval2 = 1e-4, pval3 = 1e-5
                              ){
   require(grid)
   mycol <- c("darkgreen","chocolate4","blueviolet","#223D6C","#D20A13",
@@ -57,7 +57,8 @@ volcano_plot <- function(df,
   
   
   # ggplot2: backgroud
-  p1 <- ggplot2::ggplot(data=x, ggplot2::aes(log2FoldChange, -log10(pvalue))) +
+  p1 <- ggplot2::ggplot(data=x, 
+                        ggplot2::aes(log2FoldChange, -log10(pvalue))) +
     ggplot2::geom_point(alpha = 0.6, size = size, colour = x$color_transparent) +
     ggplot2::labs(x=bquote(~Log[2]~"(fold change)"), y=bquote(~-Log[10]~italic("P-value")), title="") +
     ggplot2::ylim(c(ymin,ymax)) + 
@@ -72,6 +73,7 @@ volcano_plot <- function(df,
              linetype="longdash", lwd = 0.5) +
   ggplot2::theme_bw(base_size = 12, base_family = "Times") +
   ggplot2::theme(panel.grid=ggplot2::element_blank())
+  
   # add the threshold line
   p1 <- p1 + 
   ggplot2::geom_vline(xintercept = c(-log2FC2, log2FC2), color="grey40", 
@@ -80,12 +82,15 @@ volcano_plot <- function(df,
              linetype="longdash", lwd = 0.5)
   
   #ggplot2: highlight the important genes
-  if (nchar(selectgenes) < 1){
- 	return(p1) 
+  if (selectgenes == ""){
+ 	  return(p1) 
   } else{
-    genes <- strsplit(selectgenes, ",")[[1]]
-  	selectgenes <- x[x$geneID == genes,]
-  	p2 <- p1 + 
+    
+    selectgenes <- x[rownames(x) == selectgenes,]
+    selectgenes$geneID <- rownames(selectgenes)
+    print(selectgenes)
+    
+    p2 <- p1 + 
   	# add black circle in the interest gene
   	ggplot2::geom_point(data = selectgenes, 
              alpha = 1, size = circlesize, shape = 1, 
@@ -93,7 +98,8 @@ volcano_plot <- function(df,
              color = "black") +
   	 # show the gene name
    	 ggplot2::scale_color_manual(values = mycol) + 
-   	 ggrepel::geom_text_repel(data = selectgenes, ggplot2::aes(label=geneID),
+   	 ggrepel::geom_text_repel(data = selectgenes, 
+   	                          ggplot2::aes(label=geneID),
                   show.legend = FALSE, #不显示图例
                   size = 5, box.padding = unit(0.35, "lines"), 
    	     point.padding = unit(0.3, "lines")) +

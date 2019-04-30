@@ -11,6 +11,8 @@ library(shinythemes)
 library(clusterProfiler)
 
 options(stringsAsFactors = FALSE)
+source("scripts/gene_dot_plot.R")
+source("scripts/volcano_plot.R")
 
 symbol <- read.table("data/ath_gene_alias.txt",
                      sep="\t",
@@ -73,8 +75,7 @@ dashboardbody <- dashboardBody(
               fileInput("upload_mat", 
                         label = "Upload expression matrix file",
                         accept = c("text/plain",
-                                   ".txt")),
-              actionButton("submit", label = "Submit")
+                                   ".txt"))
               
             ),
             
@@ -203,7 +204,9 @@ dashboardbody <- dashboardBody(
                ),
              # dot plot of selected gene
              shinydashboard::box(
-               
+               plotOutput("genedotplot" ),
+               downloadLink("download_genedotplot","gene dot plot download"),
+               title = "gene expression dot Plot" 
              )
                
              ),
@@ -300,6 +303,8 @@ ui <- dashboardPage(
 
 server <- function(input, output, session){
 
+
+# globa value setting -----------------------------------------------------
   global_value <- reactiveValues(
     output_mat = NULL,
     samples = NULL,
@@ -321,12 +326,11 @@ server <- function(input, output, session){
     rank_type = NULL
 
   )
-  
-  # Read the expression matrix
+
+# Read the expression matrix ----------------------------------------------
   # get the samples name for selections
   observeEvent({
     input$upload_mat
-    input$submit
     
   },{
     global_value$output_mat <- read.table(input$upload_mat$datapath,
@@ -337,7 +341,8 @@ server <- function(input, output, session){
     
   })
   
-  # output the read count expression matrix
+
+# output the read count expression matrix ---------------------------------
   output$dataset2 <- DT::renderDT({
     
     validate(
@@ -357,8 +362,8 @@ server <- function(input, output, session){
   
   )
   
-  
-  # update the selections
+
+# Update the selections ---------------------------------------------------
   observe({
     updateSelectizeInput(session,
                          inputId = "input_control",
@@ -372,7 +377,9 @@ server <- function(input, output, session){
     )
   })
   
-  # Build DESeqDataSet object From matrix, control and case group
+
+# Build DESeqDataSet object ---------------------------------------------
+# From matrix, control and case group
   source("scripts/BuildDdsFromMatrix.R", local = TRUE)
   observeEvent(input$submit2,{
     
@@ -388,7 +395,8 @@ server <- function(input, output, session){
     )
   })
   
-  # PCA plot
+
+# PCA plot ----------------------------------------------------------------
   source("scripts/PCA_plot.R", local = TRUE)
   output$pcaplot <- renderPlot({
     validate(
@@ -399,7 +407,8 @@ server <- function(input, output, session){
     p
   })
   
-  # Differential expression analysis
+
+# DEG analysis ----------------------------------------
   source("scripts/DGE_analysis.R", local = TRUE)
   observeEvent(input$submit3,{
     
@@ -419,7 +428,8 @@ server <- function(input, output, session){
     
   })
   
-  # filter the results
+
+# Filter the results ------------------------------------------------------
   source("scripts/DE_results_filter.R", local = TRUE)
   observeEvent(input$submit4,{
     
@@ -437,7 +447,8 @@ server <- function(input, output, session){
     )
   })
   
-  # filter the results with LFC and pvalue
+
+# DT: filter the results with LFC and pvalue ------------------------------
   output$dataset1 <- DT::renderDT({
     
     validate(
@@ -449,11 +460,13 @@ server <- function(input, output, session){
     global_value$output_res
     
   },
-  server = TRUE
+  server = TRUE,
+  selection = 'single'
   )
   
-  # volcano plot
-  source("scripts/volcano_plot.R", local = TRUE)
+
+# Volcano plot ------------------------------------------------------------
+  
   output$volcano <- renderPlot({
     
     validate( 
@@ -461,13 +474,34 @@ server <- function(input, output, session){
       )
     
     df <- as.data.frame(global_value$res)
-    
+
+    #print(geneid)
     p <- volcano_plot(df)
+    if ( length(input$dataset1_rows_selected) ){
+      geneid <- global_value$output_res[input$dataset1_rows_selected, 
+                                        c('geneID')]
+      p <- volcano_plot(df, geneid)
+    }
     p
     
   })
   
-  # GO analysis
+  output$genedotplot <- renderPlot({
+    
+    validate(
+      need( length(input$dataset1_rows_selected), "select a gene")
+    )
+    
+    geneid <- global_value$output_res[input$dataset1_rows_selected, 
+                                      c('geneID')]
+    p <- gene_dot_plot(global_value$dds, geneid)
+    p
+    
+  })
+
+  
+  
+# Enrichment analysis -----------------------------------------------------
   source("scripts/Enrichment_analysis.R", local = TRUE)
   # GO_enrich_analysis
   observeEvent(input$submit5,{
@@ -524,10 +558,6 @@ observeEvent(input$submit6,{
     p
   })
   
-  
-  
-  
-   
 }
 
 
