@@ -19,29 +19,6 @@ symbol <- read.table("data/ath_gene_alias.txt",
                      header = TRUE)
 colnames(symbol) <- c("geneID", "SYMBOL")
 
-# header ------------------------------------------------------------------
-
-header <- fluidPage(
-  style = "padding: 0px",
-  theme = shinytheme("readable"),
-  tags$title("Arabidopsis RNA-seq Analysis Platform"),
-  #br()
-  fluidPage(
-    style = "background-color:#181717; padding-top:20px; padding-bottom:20px",
-    column(8,
-           tags$a(href="#","Arabidopsis RNA-seq Analysis Platform",
-                  style = "color: #ffffff; margin-left: 100px;font-size: 30px"
-           )),
-    column(4,
-           tags$a(href="http://wanglab.sippe.ac.cn","WangLab",
-                  style = "color:#ffffff; font-size: 30px")
-    )
-  ),
-  tags$br()
-  
-)
-
-
 # dashboard sidebar -------------------------------------------------------
 
 dashboardsider <- dashboardSidebar(
@@ -133,7 +110,10 @@ dashboardbody <- dashboardBody(
 
 # tabItem: DEG Analysis ---------------------------------------------------
     tabItem( tabName = "DEG",
-             
+             tags$p("First Run log2 fold change threshold ONCE, and then Run Filter by logFoldChange
+", style="font-size: 20px"),
+             tags$p("DO NOT Run log2 fold change threshold too many times",
+                    style="font-size: 20px; color: red"),
              fluidRow(
                shinydashboard::box(
                       

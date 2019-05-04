@@ -13,6 +13,8 @@ DE_result_filter <- function(res, dds,
                         split =" ", fixed = TRUE)[[1]][c(6,8)]
   select_cols <- rownames(colData(dds)[colData(dds)$condition %in% condition, ])
   counts_df <- as.data.frame(counts(dds, normalized=TRUE)[,select_cols])
+  # only keep 2 digit
+  counts_df <- round(counts_df,2)
   
   
   #for debug 
