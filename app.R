@@ -165,7 +165,7 @@ dashboardbody <- dashboardBody(
            fluidRow(
              # selection
              shinydashboard::box(
-               DT::dataTableOutput("dataset1"),
+               div(style='overflow-x: scroll', DT::dataTableOutput("dataset1")),
                br(),
                downloadLink("download_dataset1","Download csv"),
                title = "Differential expression genes",
@@ -253,7 +253,7 @@ dashboardbody <- dashboardBody(
              ),
              fluidRow(
                shinydashboard::box(
-                 DT::dataTableOutput("gsea"),
+                 div(style='overflow-x: scroll',DT::dataTableOutput("gsea")),
                  br(),
                  downloadLink("download_gsea","Download csv"),
                  title = "GSEA enriched terms",
@@ -546,6 +546,10 @@ observeEvent(input$submit6,{
   )
   
   output$gseaplot <- renderPlot({
+    
+    validate(
+      need( length(input$gsea_rows_selected) > 0, "Select a term")
+    )
     
     s <- input$gsea_rows_selected
     
