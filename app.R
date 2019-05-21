@@ -9,6 +9,7 @@ library(ggplot2)
 library(plotly)
 library(shinythemes)
 library(clusterProfiler)
+library(pathview)
 
 options(stringsAsFactors = FALSE)
 source("scripts/gene_dot_plot.R")
@@ -518,8 +519,19 @@ server <- function(input, output, session){
     enrich_plot(global_value$eout)
     
   })
-  
 
+# Download KEGG and GO ----------------------------------------------------
+  output$download_go_kegg <- downloadHandler(
+    
+    filename = "enrichment_result.csv",
+    content = function(file){
+      df <- as.data.frame(global_value$eout)
+      write.csv(df, file, row.names = FALSE)
+    }
+    
+  )
+
+  
 # GSEA analysis ---------------------------------------------------------
 observeEvent(input$submit6,{
     
@@ -544,7 +556,8 @@ observeEvent(input$submit6,{
   }, selection = 'single'
   
   )
-  
+
+# GSEA plot ---------------------------------------------------------------
   output$gseaplot <- renderPlot({
     
     validate(
@@ -557,7 +570,22 @@ observeEvent(input$submit6,{
     p
   })
   
+# GSEA output -------------------------------------------------------------
+  output$download_gsea <- downloadHandler(
+    
+    filename = "GSEA_enrcihment_result.csv",
+    content = function(file){
+      df <- as.data.frame(global_value$gseaout)
+      write.csv(df, file, row.names = FALSE)
+    }
+    
+  )
+  
+    
 }
+
+
+
 
 
 

@@ -1,5 +1,6 @@
 
-# GO analysis
+
+# GO analysis -------------------------------------------------------------
 enrich_analysis <- function(res,
                                gene_type = "all",
                                ont = "BP",
@@ -32,11 +33,15 @@ enrich_analysis <- function(res,
   
 }
 
-enrich_plot <- function(eout , showCategory = 30){
+
+# Enrichment Plot ---------------------------------------------------------
+enrich_plot <- function(eout , showCategory = 20){
   p <- dotplot(eout, showCategory = showCategory)
   p
 }
 
+
+# GSEA Enrichment ----------------------------------------------------------
 
 GSEA_analysis <- function(res, 
                           rank_type,
